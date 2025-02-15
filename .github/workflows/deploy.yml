@@ -34,8 +34,10 @@ jobs:
             --name bankaccounts \
             --resource-group DelTeaching-Group \
             --image delteaching.azurecr.io/bankaccounts:latest
+            --target-port 8080  # Expondo a porta 8080
           
           az containerapp update \
             --name transactions \
             --resource-group DelTeaching-Group \
             --image delteaching.azurecr.io/transactions:latest
+            --target-port 8080  # Expondo a porta 8080
