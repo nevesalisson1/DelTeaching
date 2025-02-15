@@ -1,0 +1,54 @@
+﻿version: '3.8'
+
+services:
+  bankaccounts:
+    build:
+      context: .
+      dockerfile: BankAccounts/Dockerfile
+    container_name: bankaccounts-api
+    ports:
+      - "5000:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=bank;Username=admin;Password=admin
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__QueueName=transactions_queue
+    depends_on:
+      - db
+      - rabbitmq
+
+  transactions:
+    build:
+      context: .
+      dockerfile: Transactions/Dockerfile
+    container_name: transactions-worker
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=bank;Username=admin;Password=admin
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__QueueName=transactions_queue
+    depends_on:
+      - db
+      - rabbitmq
+
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: bank
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+volumes:
+  postgres_data:
