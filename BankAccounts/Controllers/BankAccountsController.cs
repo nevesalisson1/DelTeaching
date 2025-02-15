@@ -24,7 +24,7 @@ namespace BankAccounts.Controllers
         {
             try
             {
-                    if (bankAccountViewModel == null) return BadRequest();
+                if (bankAccountViewModel == null) return BadRequest();
 
                 // Mapeamento do ViewModel para o modelo real
                 var bankAccount = new BankAccount
@@ -114,18 +114,25 @@ namespace BankAccounts.Controllers
 
         // RF08 - Atualizar o status de uma conta bancária
         [HttpPut("{id}/update-status")]
-        public async Task<IActionResult> UpdateStatus(int id, AccountStatus newStatus)
+        public async Task<IActionResult> UpdateStatus(int id, UpdateBankAccountStatusViewModel statusViewModel)
         {
-            var bankAccount = await _context.BankAccounts.FindAsync(id);
+            try
+            {
+                var bankAccount = await _context.BankAccounts.FindAsync(id);
 
-            if (bankAccount == null) return NotFound();
+                if (bankAccount == null) return NotFound();
 
-            bankAccount.Status = newStatus;
+                bankAccount.Status = Enum.Parse<AccountStatus>(statusViewModel.Status);
 
-            _context.Entry(bankAccount).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+                _context.Entry(bankAccount).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         // RF09 - Encerrar uma conta bancária
