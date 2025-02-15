@@ -2,6 +2,6 @@
 
 public enum HolderType
 {
-    INDIVIDUAL,
-    BUSINESS
+    NATURAL,
+    LEGAL
 }

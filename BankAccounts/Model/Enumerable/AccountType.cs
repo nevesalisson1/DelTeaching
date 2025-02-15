@@ -2,6 +2,6 @@
 
 public enum AccountType
 {
-    CHECKING,
-    SAVINGS
+    PAYMENT,
+    CURRENT
 }

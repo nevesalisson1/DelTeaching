@@ -3,5 +3,7 @@
 public enum TransactionType
 {
     CREDIT,
-    DEBIT
+    DEBIT,
+    AMOUNT_HOLD,
+    AMOUNT_RELEASE
 }

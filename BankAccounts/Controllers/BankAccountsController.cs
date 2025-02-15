@@ -201,7 +201,7 @@ namespace BankAccounts.Controllers
 
             if (bankAccount == null) return NotFound();
 
-            bankAccount.Status = AccountStatus.INACTIVE; // Alterando o status para inativo
+            bankAccount.Status = AccountStatus.FINISHED; // Alterando o status para inativo
 
             _context.Entry(bankAccount).State = EntityState.Modified;
             await _context.SaveChangesAsync();
