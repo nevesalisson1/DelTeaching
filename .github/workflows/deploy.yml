@@ -33,11 +33,9 @@ jobs:
           az containerapp update \
             --name bankaccounts \
             --resource-group DelTeaching-Group \
-            --environment managedEnvironment-DelTeachingGrou-96a8 \
             --image delteaching.azurecr.io/bankaccounts:latest
           
           az containerapp update \
             --name transactions \
             --resource-group DelTeaching-Group \
-            --environment managedEnvironment-DelTeachingGrou-96a8 \
             --image delteaching.azurecr.io/transactions:latest
