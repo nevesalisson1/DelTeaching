@@ -23,9 +23,9 @@ jobs:
 
       - name: Construir e enviar imagens para ACR
         run: |
-          docker build -t delteaching.azurecr.io/bankaccounts:latest ./BankAccounts
+          docker build -t delteaching.azurecr.io/bankaccounts:latest -f BankAccounts/Dockerfile .
           docker push delteaching.azurecr.io/bankaccounts:latest
-          docker build -t delteaching.azurecr.io/transactions:latest ./Transactions
+          docker build -t delteaching.azurecr.io/transactions:latest -f Transactions/Dockerfile .
           docker push delteaching.azurecr.io/transactions:latest
 
       - name: Deploy no Azure Container Apps
