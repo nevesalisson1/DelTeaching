@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - main  # 🚀 Executa quando há commit na branch main
+      - master  # 🚀 Executa quando há commit na branch main
 
 jobs:
   deploy:
