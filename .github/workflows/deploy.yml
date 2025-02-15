@@ -1,0 +1,43 @@
+﻿name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main  # 🚀 Executa quando há commit na branch main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+
+      - name: Login no Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}  # ⚠️ Criar esse segredo no GitHub
+
+      - name: Login no ACR
+        run: az acr login --name delteaching
+
+      - name: Construir e enviar imagens para ACR
+        run: |
+          docker build -t delteaching.azurecr.io/bankaccounts:latest ./BankAccounts
+          docker push delteaching.azurecr.io/bankaccounts:latest
+          docker build -t delteaching.azurecr.io/transactions:latest ./Transactions
+          docker push delteaching.azurecr.io/transactions:latest
+
+      - name: Deploy no Azure Container Apps
+        run: |
+          az containerapp update \
+            --name bankaccounts \
+            --resource-group <YOUR_RESOURCE_GROUP> \
+            --environment <AZURE_CONTAINER_ENV> \
+            --image delteaching.azurecr.io/bankaccounts:latest
+          
+          az containerapp update \
+            --name transactions \
+            --resource-group <YOUR_RESOURCE_GROUP> \
+            --environment <AZURE_CONTAINER_ENV> \
+            --image delteaching.azurecr.io/transactions:latest
