@@ -1,24 +1,25 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BankAccounts.Migrations;
 
 namespace BankAccounts.ViewModel;
 
 public class BankAccountCreateViewModel
 {
     [Required(ErrorMessage = "A agência é obrigatória.")]
-    [StringLength(4, MinimumLength = 3, ErrorMessage = "A agência deve ter entre 3 e 4 caracteres.")]
+    [StringLength(5, ErrorMessage = "A agência deve ter até 5 caracteres.")]
     public string Branch { get; set; }
 
     [Required(ErrorMessage = "O tipo da conta é obrigatório.")]
-    [StringLength(20, ErrorMessage = "O tipo da conta não pode exceder 20 caracteres.")]
+    [EnumDataType(typeof(AccountType), ErrorMessage = "O tipo da conta deve ser PAYMENT ou CURRENT.")]
     public string Type { get; set; }
 
     [Required(ErrorMessage = "O nome do titular é obrigatório.")]
-    [StringLength(100, ErrorMessage = "O nome do titular não pode exceder 100 caracteres.")]
+    [StringLength(200, ErrorMessage = "O nome do titular não pode exceder 200 caracteres.")]
     public string HolderName { get; set; }
 
     [Required(ErrorMessage = "O e-mail do titular é obrigatório.")]
     [EmailAddress(ErrorMessage = "E-mail inválido.")]
-    [StringLength(150, ErrorMessage = "O e-mail não pode exceder 150 caracteres.")]
+    [StringLength(200, ErrorMessage = "O e-mail não pode exceder 200 caracteres.")]
     public string HolderEmail { get; set; }
 
     [Required(ErrorMessage = "O documento do titular é obrigatório.")]
@@ -26,6 +27,6 @@ public class BankAccountCreateViewModel
     public string HolderDocument { get; set; }
 
     [Required(ErrorMessage = "O tipo legal do titular é obrigatório.")]
-    [StringLength(20, ErrorMessage = "O tipo legal do titular não pode exceder 20 caracteres.")]
+    [EnumDataType(typeof(HolderType), ErrorMessage = "O tipo legal do titular deve ser NATURAL ou LEGAL.")]
     public string HolderType { get; set; }
 }
