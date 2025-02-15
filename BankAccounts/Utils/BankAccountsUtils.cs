@@ -4,10 +4,11 @@ public class BankAccountsUtils
 {
     public static string GenerateAccountNumber()
     {
-        // Gerar um número de conta aleatório com 6 dígitos
-        var rand = new Random();
-        var accountNumber = rand.Next(100000, 999999);
+        var dateTimePart = DateTime.UtcNow.ToString("mmssfff");
+        var randomPart = new Random().Next(1000, 9999).ToString();
 
-        return accountNumber.ToString();
+        var accountNumber = dateTimePart + randomPart;
+
+        return accountNumber;
     }
 }

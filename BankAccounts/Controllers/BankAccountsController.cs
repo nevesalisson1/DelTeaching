@@ -21,23 +21,44 @@ namespace BankAccounts.Controllers
         
         // RFBONUS - Listar todas as contas bancárias
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BankAccount>>> GetAllBankAccounts()
+        public async Task<ActionResult<IEnumerable<BankAccount>>> GetAllBankAccounts(
+            [FromQuery] string? accountNumber = null,
+            [FromQuery] string? branch = null,
+            [FromQuery] string? holderDocument = null 
+        )
         {
             try
             {
-                // Obtém todas as contas bancárias do banco de dados
-                var bankAccounts = await _context.BankAccounts
-                    .Include(b => b.Balance) // Inclui o saldo da conta bancária, se necessário
-                    .ToListAsync();
+                var query = _context.BankAccounts.AsQueryable();
+
+                // Filtro por número da conta
+                if (!string.IsNullOrEmpty(accountNumber))
+                {
+                    query = query.Where(b => b.Number.Contains(accountNumber));
+                }
+
+                // Filtro por agência
+                if (!string.IsNullOrEmpty(branch))
+                {
+                    query = query.Where(b => b.Branch.Contains(branch));
+                }
+
+                // Filtro por documento do titular
+                if (!string.IsNullOrEmpty(holderDocument))
+                {
+                    query = query.Where(b => b.HolderDocument.Contains(holderDocument));
+                }
+
+                var bankAccounts = await query.Include(b => b.Balance).ToListAsync();
 
                 if (bankAccounts == null || !bankAccounts.Any())
                 {
                     return NotFound("Nenhuma conta bancária encontrada.");
                 }
 
-                return Ok(bankAccounts); // Retorna todas as contas bancárias
+                return Ok(bankAccounts);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest("Erro ao listar as contas bancárias.");
             }
@@ -244,7 +265,7 @@ namespace BankAccounts.Controllers
         }
 
         // RF13 - Recebimento de crédito
-        [HttpPut("{id}/credit")]
+        [HttpPost("{id}/credit")]
         public async Task<IActionResult> CreditAccount(int id, decimal amount)
         {
             var bankAccount = await _context.BankAccounts
@@ -264,7 +285,7 @@ namespace BankAccounts.Controllers
         }
 
         // RF14 - Realização de débito
-        [HttpPut("{id}/debit")]
+        [HttpPost("{id}/debit")]
         public async Task<IActionResult> DebitAccount(int id, decimal amount)
         {
             var bankAccount = await _context.BankAccounts

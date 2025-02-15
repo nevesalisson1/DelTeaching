@@ -50,16 +50,71 @@ namespace BankAccounts.Controllers
 
         // RF18 - Buscar todas as transações de uma conta bancária
         [HttpGet("account/{accountId}")]
-        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactionsByAccount(int accountId)
+        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactionsByAccount(
+            int accountId,
+            [FromQuery] int? id = null,                  // Filtro opcional por ID da transação
+            [FromQuery] DateTime? startDate = null,      // Filtro opcional por data de início
+            [FromQuery] DateTime? endDate = null,        // Filtro opcional por data de término
+            [FromQuery] string? counterpartyDocument = null, // Filtro opcional por documento da contraparte
+            [FromQuery] string? transactionType = null     // Filtro opcional por tipo de transação
+        )
         {
-            var transactions = await _context.Transactions
-                                             .Where(t => t.BankAccountId == accountId)
-                                             .Include(t => t.BankAccount)  // Incluindo o banco associado
-                                             .ToListAsync();
+            try
+            {
+                // Inicia a consulta
+                var query = _context.Transactions
+                    .Where(t => t.BankAccountId == accountId);  // Filtra pela conta bancária
 
-            if (!transactions.Any()) return NotFound();
+                if (id.HasValue)
+                {
+                    query = query.Where(t => t.Id == id);
+                }
 
-            return transactions;
+                // Filtro por data de início, se informado
+                if (startDate.HasValue)
+                {
+                    query = query.Where(t => t.CreatedAt >= startDate.Value);
+                }
+
+                // Filtro por data de término, se informado
+                if (endDate.HasValue)
+                {
+                    query = query.Where(t => t.CreatedAt <= endDate.Value);
+                }
+
+                // Filtro por documento da contraparte, se informado
+                if (!string.IsNullOrEmpty(counterpartyDocument))
+                {
+                    query = query.Where(t => t.CounterpartyHolderDocument.Contains(counterpartyDocument));
+                }
+
+                // Filtro por tipo de transação, se informado
+                if (!string.IsNullOrEmpty(transactionType))
+                {
+                    if (Enum.TryParse<TransactionType>(transactionType, true, out var parsedType))
+                    {
+                        query = query.Where(t => t.Type == parsedType);
+                    }
+                    else
+                    {
+                        return BadRequest("Tipo de transação inválido.");
+                    }
+                }
+
+                // Executa a consulta sem incluir o BankAccount
+                var transactions = await query.ToListAsync();
+
+                if (!transactions.Any())
+                {
+                    return NotFound("Nenhuma transação encontrada para a conta bancária.");
+                }
+
+                return Ok(transactions);
+            }
+            catch (Exception)
+            {
+                return BadRequest("Erro ao listar as transações.");
+            }
         }
 
         // RF19 - Buscar transações pelo documento do titular
