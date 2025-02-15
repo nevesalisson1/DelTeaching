@@ -1,4 +1,5 @@
 using BankAccounts.Context;
+using BankAccounts.Migrations;
 using BankAccounts.Model;
 using BankAccounts.Utils;
 using BankAccounts.ViewModel;
@@ -16,6 +17,30 @@ namespace BankAccounts.Controllers
         public BankAccountsController(DataContext context)
         {
             _context = context;
+        }
+        
+        // RFBONUS - Listar todas as contas bancárias
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<BankAccount>>> GetAllBankAccounts()
+        {
+            try
+            {
+                // Obtém todas as contas bancárias do banco de dados
+                var bankAccounts = await _context.BankAccounts
+                    .Include(b => b.Balance) // Inclui o saldo da conta bancária, se necessário
+                    .ToListAsync();
+
+                if (bankAccounts == null || !bankAccounts.Any())
+                {
+                    return NotFound("Nenhuma conta bancária encontrada.");
+                }
+
+                return Ok(bankAccounts); // Retorna todas as contas bancárias
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Erro ao listar as contas bancárias.");
+            }
         }
 
         // RF01 - Criar uma conta bancária
@@ -41,14 +66,26 @@ namespace BankAccounts.Controllers
                     UpdatedAt = DateTime.UtcNow
                 };
 
+                // Adiciona a conta bancária ao contexto
                 _context.BankAccounts.Add(bankAccount);
                 await _context.SaveChangesAsync();
 
+                // Criando um saldo inicial para a conta bancária (valor padrão)
+                var bankAccountBalance = new Balance
+                {
+                    BankAccountId = bankAccount.Id,
+                    AvailableAmount = 0, // Saldo inicial padrão, pode ser alterado conforme necessário
+                    BlockedAmount = 0
+                };
+
+                // Adicionando o saldo no contexto
+                _context.Balances.Add(bankAccountBalance);
+                await _context.SaveChangesAsync();
+
                 // Retorna a conta bancária criada
-                return CreatedAtAction(nameof(GetBankAccountByNumber), new { number = bankAccount.Number },
-                    bankAccount);
+                return CreatedAtAction(nameof(GetBankAccountByNumber), new { number = bankAccount.Number }, bankAccount);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return BadRequest();
             }
@@ -245,26 +282,5 @@ namespace BankAccounts.Controllers
 
             return NoContent();
         }
-
-        // RF15 - Validação antes de aceitar um crédito
-        private bool IsAccountAbleToReceiveCredit(int id)
-        {
-            var bankAccount = _context.BankAccounts.FirstOrDefault(b => b.Id == id);
-            return bankAccount != null && bankAccount.Status == AccountStatus.ACTIVE;
-        }
-
-        // RF16 - Validação antes de realizar um débito
-        private bool IsAccountAbleToMakeDebit(int id, decimal amount)
-        {
-            var bankAccount = _context.BankAccounts
-                                       .Include(b => b.Balance)
-                                       .FirstOrDefault(b => b.Id == id);
-            return bankAccount != null && bankAccount.Status == AccountStatus.ACTIVE &&
-                   bankAccount.Balance.AvailableAmount >= amount;
-        }
-
-        // RF17 - Buscar uma transação pelo ID (a ser implementado conforme transações)
-        // RF18 - Buscar todas as transações de uma conta bancária
-        // RF19 - Buscar transações pelo documento do titular (a ser implementado)
     }
 }

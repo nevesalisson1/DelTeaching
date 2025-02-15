@@ -1,5 +1,6 @@
 using BankAccounts.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Adicionar os serviços de controllers
-builder.Services.AddControllers();
+// Adicionar os serviços de controllers e configurar a serialização de enums como strings
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; // Ignorar ciclos de referência
+    });
 
 // Configurar Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -29,12 +35,8 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configurar o pipeline de requisição HTTP
-// if (app.Environment.IsDevelopment())
-// {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-// }
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 
