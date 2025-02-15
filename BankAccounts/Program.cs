@@ -7,14 +7,6 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ConfigureHttpsDefaults(config =>
-    {
-        config.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
-    });
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
