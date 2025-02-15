@@ -30,20 +30,12 @@ jobs:
 
       - name: Deploy no Azure Container Apps
         run: |
-          # Atualizar a aplicação BankAccounts com nova imagem e configurações
           az containerapp update \
             --name bankaccounts \
             --resource-group DelTeaching-Group \
-            --image delteaching.azurecr.io/bankaccounts:latest \
-            --ingress 'external' \
-            --ingress-target-port 8080 \
-            --cpu 0.5 --memory 1Gi
-
-          # Atualizar a aplicação Transactions com nova imagem e configurações
+            --image delteaching.azurecr.io/bankaccounts:latest
+          
           az containerapp update \
             --name transactions \
             --resource-group DelTeaching-Group \
-            --image delteaching.azurecr.io/transactions:latest \
-            --ingress 'external' \
-            --ingress-target-port 8080 \
-            --cpu 0.5 --memory 1Gi
+            --image delteaching.azurecr.io/transactions:latest

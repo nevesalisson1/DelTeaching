@@ -7,7 +7,7 @@ services:
       dockerfile: BankAccounts/Dockerfile
     container_name: bankaccounts-api
     ports:
-      - "5000:80"
+      - "8080:8080"
     environment:
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=bank;Username=admin;Password=admin
       - RabbitMQ__Host=rabbitmq
@@ -21,6 +21,8 @@ services:
       context: .
       dockerfile: Transactions/Dockerfile
     container_name: transactions-worker
+    ports:
+      - "8083:8080"
     environment:
       - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=bank;Username=admin;Password=admin
       - RabbitMQ__Host=rabbitmq
