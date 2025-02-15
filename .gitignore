@@ -1,0 +1,83 @@
+﻿# Ignore build artifacts
+[Bb]in/
+[Oo]bj/
+
+# Ignore local user-specific files
+*.user
+*.suo
+*.userprefs
+*.lock.json
+
+# Ignore IDE-specific files
+.vs/
+.idea/
+*.swp
+*.swo
+
+# Ignore NuGet packages and restore files
+.nuget/
+packages/
+[Nn]u[Gg]et.[Ll]ocal.[Pp]ackages/
+*.nupkg
+
+# Ignore local development files
+launchSettings.json
+
+# Ignore test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Ignore ReSharper files
+_ReSharper.*
+*.ReSharper
+
+# Ignore Rider files
+.idea/
+*.sln.iml
+
+# Ignore Visual Studio cache/options directory
+.vs/
+
+# Ignore Azure Functions local settings
+local.settings.json
+
+# Ignore MSTest test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# Ignore output files
+out/
+dist/
+
+# Ignore .NET Core tools
+.dotnet/
+
+# Ignore Rider/ReSharper specific files
+*.DotSettings
+
+# Ignore macOS files
+.DS_Store
+
+# Ignore Node.js files (caso seu projeto use Node.js)
+node_modules/
+npm-debug.log
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore Azure Functions local settings
+local.settings.json
+
+# Ignore logs and diagnostics
+*.log
+*.log.*
+*.trx
+
+# Ignore temp files
+*.tmp
+*.temp
+
+# Ignore coverage reports
+coverage/
+*.coverage
+*.coverage.xml
