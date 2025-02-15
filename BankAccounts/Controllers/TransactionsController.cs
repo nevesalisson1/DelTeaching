@@ -1,9 +1,12 @@
-﻿using BankAccounts.Context;
+﻿using System.Text;
+using BankAccounts.Context;
 using BankAccounts.Migrations;
 using BankAccounts.Model;
 using BankAccounts.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 
 namespace BankAccounts.Controllers
 {
@@ -12,10 +15,12 @@ namespace BankAccounts.Controllers
     public class TransactionsController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IConfiguration _config;
 
-        public TransactionsController(DataContext context)
+        public TransactionsController(DataContext context, IConfiguration config)
         {
             _context = context;
+            _config = config;
         }
 
         // RF15 - Validação antes de aceitar um crédito
@@ -139,65 +144,40 @@ namespace BankAccounts.Controllers
 
         // RF20 - Criar uma nova transação
         [HttpPost("account/{accountId}")]
-        public async Task<ActionResult<Transaction>> CreateTransaction(int accountId, TransactionCreateViewModel transactionViewModel)
+        public ActionResult CreateTransaction(int accountId, TransactionCreateViewModel transactionViewModel)
         {
             try
             {
-                var bankAccount = await _context.BankAccounts
-                                                 .Include(b => b.Balance)
-                                                 .FirstOrDefaultAsync(b => b.Id == accountId);
+                var rabbitMqHost = _config["RabbitMQ:Host"] ?? "localhost";  // Provide default
+                var factory = new ConnectionFactory() { HostName = rabbitMqHost };
+                using var connection = factory.CreateConnection();
+                using var channel = connection.CreateModel();
 
-                if (bankAccount == null) return NotFound("Conta bancária não encontrada.");
+                channel.QueueDeclare(queue: _config["RabbitMQ:QueueName" ?? "transactions_queue"],
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
 
-                // Validação RF15: Verificando se a conta pode receber um crédito
-                if (transactionViewModel.Type == "CREDIT" && !IsAccountAbleToReceiveCredit(accountId))
+                var transactionRequest = new
                 {
-                    return BadRequest("A conta não pode receber crédito.");
-                }
-
-                // Validação RF16: Verificando se a conta pode realizar um débito
-                if (transactionViewModel.Type == "DEBIT" && !IsAccountAbleToMakeDebit(accountId, transactionViewModel.Amount))
-                {
-                    return BadRequest("A conta não pode realizar débito devido ao saldo insuficiente.");
-                }
-
-                // Mapeamento do ViewModel para o modelo de Transação
-                var transaction = new Transaction
-                {
-                    Type = Enum.Parse<TransactionType>(transactionViewModel.Type),
-                    Amount = transactionViewModel.Amount,
-                    BankAccountId = accountId,
-                    CounterpartyBankCode = transactionViewModel.CounterpartyBankCode,
-                    CounterpartyBankName = transactionViewModel.CounterpartyBankName,
-                    CounterpartyBranch = transactionViewModel.CounterpartyBranch,
-                    CounterpartyAccountNumber = transactionViewModel.CounterpartyAccountNumber,
-                    CounterpartyAccountType = Enum.Parse<AccountType>(transactionViewModel.CounterpartyAccountType),
-                    CounterpartyAccountHolderName = transactionViewModel.CounterpartyAccountHolderName,
-                    CounterpartyHolderType = Enum.Parse<HolderType>(transactionViewModel.CounterpartyHolderType),
-                    CounterpartyHolderDocument = transactionViewModel.CounterpartyHolderDocument,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
+                    AccountId = accountId,
+                    Transaction = transactionViewModel
                 };
 
-                // Atualizando o saldo da conta
-                if (transaction.Type == TransactionType.DEBIT)
-                {
-                    bankAccount.Balance.AvailableAmount -= transaction.Amount;
-                }
-                else if (transaction.Type == TransactionType.CREDIT)
-                {
-                    bankAccount.Balance.AvailableAmount += transaction.Amount;
-                }
+                var message = JsonConvert.SerializeObject(transactionRequest);
+                var body = Encoding.UTF8.GetBytes(message);
 
-                _context.Transactions.Add(transaction);
-                await _context.SaveChangesAsync();
+                channel.BasicPublish(exchange: "",
+                    routingKey: _config["RabbitMQ:QueueName"],
+                    basicProperties: null,
+                    body: body);
 
-                // Retorna a transação criada
-                return CreatedAtAction(nameof(GetTransactionById), new { id = transaction.Id }, transaction);
+                return Ok();
             }
             catch (Exception)
             {
-                return BadRequest("Erro ao criar transação.");
+                return BadRequest("Erro ao enviar transação para processamento.");
             }
         }
     }
