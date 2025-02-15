@@ -32,12 +32,12 @@ jobs:
         run: |
           az containerapp update \
             --name bankaccounts \
-            --resource-group <YOUR_RESOURCE_GROUP> \
-            --environment <AZURE_CONTAINER_ENV> \
+            --resource-group DelTeaching-Group \
+            --environment managedEnvironment-DelTeachingGrou-96a8 \
             --image delteaching.azurecr.io/bankaccounts:latest
           
           az containerapp update \
             --name transactions \
-            --resource-group <YOUR_RESOURCE_GROUP> \
-            --environment <AZURE_CONTAINER_ENV> \
+            --resource-group DelTeaching-Group \
+            --environment managedEnvironment-DelTeachingGrou-96a8 \
             --image delteaching.azurecr.io/transactions:latest
